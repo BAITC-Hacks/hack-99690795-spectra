@@ -14,6 +14,7 @@ class RecommendationRequest(BaseModel):
     budget: int = Field(gt=0, le=100_000_000)
     duration: int | None = Field(default=None, ge=1, le=48)
     language: Literal["ru", "kk", "en"] | None = None
+    locale: Literal["ru", "kk", "en"] = "ru"
     sort: Literal["relevance", "price_asc", "price_desc"] = "relevance"
 
     @field_validator("city", "event_type", "category")

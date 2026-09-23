@@ -5,13 +5,15 @@ import logging
 from typing import Any
 
 from .config import Settings
+from .i18n import event_label, language_label
 from .models import RecommendationRequest
 from .repository import Contractor
 
 
 logger = logging.getLogger(__name__)
 
-LANGUAGE_LABELS = {"ru": "русском", "kk": "казахском", "en": "английском"}
+REQUESTED_LANGUAGE = {"ru": "русский", "kk": "казахский", "en": "английский"}
+OUTPUT_LANGUAGE = {"ru": "русском", "kk": "казахском", "en": "английском"}
 
 
 class ExplanationService:
@@ -48,6 +50,7 @@ class ExplanationService:
                 "budget_kzt": request.budget,
                 "duration_hours": request.duration,
                 "language": request.language,
+                "output_locale": request.locale,
             },
             "candidates": [
                 {
@@ -67,9 +70,10 @@ class ExplanationService:
                 model=self.settings.openai_model,
                 instructions=(
                     "Ты редактор сервиса подбора event-подрядчиков. Верни только JSON-объект, "
-                    "где ключ — id кандидата, значение — точное объяснение на русском в 1–2 "
+                    "где ключ — id кандидата, значение — точное объяснение в 1–2 "
                     "предложениях. Используй только факты из JSON. Обязательно назови конкретное "
                     "совпадение: формат, бюджет, язык, длительность или особенность описания. "
+                    f"Пиши строго на {OUTPUT_LANGUAGE[request.locale]} языке. "
                     "Не ранжируй кандидатов и не используй общие рекламные фразы."
                 ),
                 input=json.dumps(payload, ensure_ascii=False),
@@ -89,19 +93,54 @@ class ExplanationService:
         contractor: Contractor,
     ) -> str:
         reserve = request.budget - contractor.price
-        if reserve > 0:
-            budget_part = (
-                f"Стоимость укладывается в бюджет с запасом {reserve:,.0f} ₸".replace(",", " ")
-            )
-        else:
-            budget_part = "Стоимость точно соответствует указанному бюджету"
+        reserve_text = f"{reserve:,.0f}".replace(",", " ")
+        event = event_label(request.event_type, request.locale)
+        requested_language = (
+            language_label(REQUESTED_LANGUAGE[request.language], request.locale)
+            if request.language
+            else None
+        )
 
-        matches: list[str] = [f"работает с форматом «{request.event_type}»"]
+        if request.locale == "en":
+            budget_part = (
+                f"The price is {reserve_text} ₸ below your budget"
+                if reserve > 0
+                else "The price exactly matches your budget"
+            )
+            matches = [f"works with {event} events"]
+            if requested_language:
+                matches.append(f"can work in {requested_language}")
+            if request.duration and contractor.max_hours:
+                matches.append(
+                    f"is available for {request.duration} hours within a {contractor.max_hours}-hour limit"
+                )
+            return f"{budget_part}. {contractor.name} " + " and ".join(matches) + "."
+
+        if request.locale == "kk":
+            budget_part = (
+                f"Құны бюджеттен {reserve_text} ₸ төмен"
+                if reserve > 0
+                else "Құны көрсетілген бюджетке дәл сәйкес келеді"
+            )
+            matches = [f"«{event}» форматында жұмыс істейді"]
+            if requested_language:
+                matches.append(f"{requested_language} тілінде қызмет көрсетеді")
+            if request.duration and contractor.max_hours:
+                matches.append(
+                    f"{contractor.max_hours} сағаттық лимит шегінде {request.duration} сағатқа қолжетімді"
+                )
+            return f"{budget_part}. {contractor.name} " + " және ".join(matches) + "."
+
+        budget_part = (
+            f"Стоимость укладывается в бюджет с запасом {reserve_text} ₸"
+            if reserve > 0
+            else "Стоимость точно соответствует указанному бюджету"
+        )
+        matches = [f"работает с форматом «{event}»"]
         if request.language:
-            matches.append(f"проводит события на {LANGUAGE_LABELS[request.language]} языке")
+            matches.append(f"проводит события на {requested_language} языке")
         if request.duration and contractor.max_hours:
             matches.append(
                 f"доступен на {request.duration} ч при лимите до {contractor.max_hours} ч"
             )
-
         return f"{budget_part}. {contractor.name} " + " и ".join(matches) + "."

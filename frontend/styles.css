@@ -24,6 +24,7 @@ html {
 
 body {
   margin: 0;
+  overflow-x: hidden;
   color: var(--ink);
   background:
     radial-gradient(circle at 68% 10%, rgba(255,255,255,.86), transparent 28rem),
@@ -116,6 +117,51 @@ a {
   transition: color .2s ease;
 }
 
+.header-tools {
+  display: flex;
+  align-items: center;
+  justify-self: end;
+  gap: 12px;
+}
+
+.locale-switcher {
+  display: inline-flex;
+  gap: 3px;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .45);
+}
+
+.locale-switcher button {
+  min-width: 42px;
+  min-height: 34px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  font-family: var(--sans);
+  font-size: .65rem;
+  font-weight: 700;
+  letter-spacing: .03em;
+  transition: color .2s ease, background .2s ease, box-shadow .2s ease;
+}
+
+.locale-switcher button:hover {
+  background: rgba(41, 20, 37, .07);
+}
+
+.locale-switcher button.is-active {
+  color: white;
+  background: var(--plum);
+  box-shadow: 0 4px 12px rgba(41, 20, 37, .18);
+}
+
+.locale-switcher button:focus-visible {
+  outline: 3px solid rgba(239, 76, 47, .24);
+  outline-offset: 2px;
+}
+
 .main-nav a:hover,
 .header-status:hover {
   color: var(--accent);
@@ -191,6 +237,12 @@ a {
   border-radius: 16px;
   background: rgba(251, 250, 247, .78);
   box-shadow: 0 28px 90px rgba(47, 34, 37, .08);
+}
+
+#search,
+#how,
+#about {
+  scroll-margin-top: 90px;
 }
 
 .search-panel {
@@ -629,6 +681,7 @@ a {
   font-weight: 500;
   letter-spacing: -.04em;
   line-height: 1;
+  overflow-wrap: anywhere;
 }
 
 .card-price {
@@ -989,11 +1042,11 @@ a {
   }
 
   .header-status {
-    padding: 9px 12px;
+    display: none;
   }
 
-  .header-status span:last-child {
-    display: none;
+  .header-tools {
+    gap: 0;
   }
 
   .intro {
@@ -1050,12 +1103,58 @@ a {
 }
 
 @media (max-width: 560px) {
+  .site-header {
+    min-height: 64px;
+    padding: 0 12px;
+  }
+
+  .brand__name {
+    font-size: 1.35rem;
+  }
+
+  .locale-switcher {
+    gap: 2px;
+    padding: 2px;
+  }
+
+  .locale-switcher button {
+    min-width: 38px;
+    min-height: 36px;
+    padding: 0 7px;
+    font-size: .61rem;
+  }
+
+  .intro {
+    padding: 36px 16px 25px;
+  }
+
   .intro h1 {
-    font-size: 3.25rem;
+    font-size: clamp(2.7rem, 14vw, 3.5rem);
+    line-height: .96;
+    overflow-wrap: anywhere;
+  }
+
+  .intro__copy {
+    font-size: .88rem;
+    line-height: 1.55;
+  }
+
+  .matcher {
+    margin: 0 8px 52px;
+    border-radius: 13px;
   }
 
   .search-panel {
-    padding: 25px 18px;
+    padding: 23px 14px;
+    border-radius: 13px 13px 0 0;
+  }
+
+  .panel-heading {
+    margin-bottom: 22px;
+  }
+
+  .panel-heading h2 {
+    font-size: 1.75rem;
   }
 
   .field-row--two,
@@ -1063,12 +1162,51 @@ a {
     grid-template-columns: 1fr;
   }
 
+  .field input,
+  .field select,
+  .sort-control select {
+    height: 50px;
+    font-size: 16px;
+  }
+
+  .language-options {
+    grid-template-columns: 1.4fr repeat(3, .8fr);
+  }
+
+  .language-options span {
+    min-height: 48px;
+    padding: 4px;
+    font-size: .67rem;
+    line-height: 1.15;
+    text-align: center;
+  }
+
+  .submit-button {
+    position: sticky;
+    z-index: 6;
+    bottom: max(10px, env(safe-area-inset-bottom));
+    min-height: 56px;
+    margin-top: 14px;
+  }
+
   .results-panel {
-    padding-left: 16px;
+    padding: 24px 10px 20px;
   }
 
   .results-toolbar {
-    padding-right: 16px;
+    min-height: 0;
+    padding: 0 0 18px;
+    gap: 18px;
+  }
+
+  .results-toolbar h2 {
+    font-size: 2rem;
+    line-height: 1.05;
+    overflow-wrap: anywhere;
+  }
+
+  .results-toolbar p:not(.step-label) {
+    line-height: 1.45;
   }
 
   .results-actions {
@@ -1077,15 +1215,21 @@ a {
   }
 
   .cards-track {
-    padding-right: 16px;
+    gap: 12px;
+    min-height: 0;
+    padding-right: 0;
   }
 
   .card-image,
   .card-image img,
   .skeleton-image {
-    min-height: 145px;
-    height: 145px;
-    max-height: 145px;
+    min-height: 180px;
+    height: 180px;
+    max-height: 180px;
+  }
+
+  .card-body {
+    padding: 17px 15px;
   }
 
   .card-heading {
@@ -1097,12 +1241,44 @@ a {
     grid-row: 2;
   }
 
+  .card-description {
+    -webkit-line-clamp: 3;
+  }
+
+  .why-box {
+    gap: 10px;
+    padding: 13px;
+  }
+
+  .empty-result-card,
+  .result-state {
+    min-height: 340px;
+    margin-right: 0;
+    padding: 26px 18px;
+  }
+
   .how-section {
     padding: 65px 22px 80px;
   }
 
   .site-footer {
-    padding: 45px 24px;
+    min-height: 0;
+    padding: 45px 20px calc(45px + env(safe-area-inset-bottom));
+  }
+}
+
+@media (max-width: 370px) {
+  .brand__name {
+    font-size: 1.18rem;
+  }
+
+  .locale-switcher button {
+    min-width: 34px;
+    padding: 0 5px;
+  }
+
+  .intro h1 {
+    font-size: 2.55rem;
   }
 }
 
