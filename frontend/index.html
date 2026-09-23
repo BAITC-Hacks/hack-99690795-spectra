@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Совпало — точный подбор подрядчиков для событий с понятным объяснением каждого совпадения." />
+    <meta name="theme-color" content="#f5f2ec" />
+    <title>Совпало — подрядчики для событий</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@400;500;600&family=Playfair+Display:wght@500;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="#top" aria-label="Совпало — на главную">
+        <span class="brand__name">СОВПАЛО</span>
+        <span class="brand__divider" aria-hidden="true"></span>
+        <span class="brand__tagline">подрядчики<br />для событий</span>
+      </a>
+      <nav class="main-nav" aria-label="Основная навигация">
+        <a href="#how">Как это работает</a>
+        <a href="#search">Подбор</a>
+        <a href="#about">О сервисе</a>
+      </nav>
+      <a class="header-status" href="#search">
+        <span class="status-dot" aria-hidden="true"></span>
+        <span id="headerDatasetStatus">Каталог загружается</span>
+      </a>
+    </header>
+
+    <main id="top">
+      <section class="intro" aria-labelledby="pageTitle">
+        <div>
+          <p class="eyebrow">Меньше вариантов. Больше уверенности.</p>
+          <h1 id="pageTitle">Найдём тех, кто действительно подходит</h1>
+        </div>
+        <p class="intro__copy">До трёх точных совпадений — с честным объяснением, почему каждый подрядчик оказался в подборке.</p>
+      </section>
+
+      <section class="matcher" id="search" aria-label="Подбор подрядчиков">
+        <aside class="search-panel">
+          <div class="panel-heading">
+            <span class="step-label">01 / Параметры</span>
+            <h2>Расскажите о событии</h2>
+          </div>
+
+          <form id="searchForm">
+            <div class="field-row field-row--two">
+              <label class="field">
+                <span>Город</span>
+                <span class="select-wrap">
+                  <select id="city" name="city" required aria-label="Город"></select>
+                </span>
+              </label>
+              <label class="field">
+                <span>Дата мероприятия</span>
+                <input id="date" name="date" type="date" required />
+              </label>
+            </div>
+
+            <label class="field">
+              <span>Тип мероприятия</span>
+              <span class="select-wrap">
+                <select id="eventType" name="event_type" required></select>
+              </span>
+            </label>
+
+            <label class="field">
+              <span>Категория подрядчика</span>
+              <span class="select-wrap">
+                <select id="category" name="category" required></select>
+              </span>
+            </label>
+
+            <label class="field">
+              <span>Бюджет, ₸</span>
+              <span class="money-input">
+                <input id="budget" name="budget" type="number" min="10000" max="100000000" step="10000" value="1200000" required />
+                <span>₸</span>
+              </span>
+              <small id="budgetPreview">1 200 000 ₸</small>
+            </label>
+
+            <div class="optional-divider"><span>Опционально</span></div>
+
+            <div class="field-row field-row--duration">
+              <label class="field">
+                <span>Длительность, ч</span>
+                <input id="duration" name="duration" type="number" min="1" max="48" placeholder="Например, 6" value="6" />
+              </label>
+              <fieldset class="language-field">
+                <legend>Язык</legend>
+                <div class="language-options" id="languageOptions">
+                  <label><input type="radio" name="language" value="" /><span>Любой</span></label>
+                  <label><input type="radio" name="language" value="ru" checked /><span>RU</span></label>
+                  <label><input type="radio" name="language" value="kk" /><span>KZ</span></label>
+                  <label><input type="radio" name="language" value="en" /><span>EN</span></label>
+                </div>
+              </fieldset>
+            </div>
+
+            <button class="submit-button" type="submit">
+              <span>Найти подрядчиков</span>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M14 6l6 6-6 6" /></svg>
+            </button>
+          </form>
+
+          <p class="dataset-note"><span class="status-dot"></span><span id="datasetStatus">Проверяем датасет…</span></p>
+        </aside>
+
+        <section class="results-panel" aria-live="polite" aria-busy="false">
+          <div class="results-toolbar">
+            <div>
+              <span class="step-label">02 / Совпадения</span>
+              <h2 id="resultsTitle">Подходят под запрос</h2>
+              <p id="resultsSubtitle">Укажите параметры — покажем до трёх вариантов</p>
+            </div>
+            <div class="results-actions">
+              <label class="sort-control">
+                <span class="sr-only">Сортировка</span>
+                <select id="sortSelect">
+                  <option value="relevance">Сначала точное совпадение</option>
+                  <option value="price_asc">Цена: сначала ниже</option>
+                  <option value="price_desc">Цена: сначала выше</option>
+                </select>
+              </label>
+              <div class="carousel-controls" aria-label="Навигация по карточкам">
+                <button id="previousCard" type="button" aria-label="Предыдущая карточка">←</button>
+                <button id="nextCard" type="button" aria-label="Следующая карточка">→</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="result-state" id="resultState" hidden></div>
+          <div class="cards-track" id="cardsTrack"></div>
+          <div class="cards-footer" id="cardsFooter" hidden>
+            <span id="cardsCounter">01 / 03</span>
+            <div class="carousel-dots" id="carouselDots"></div>
+            <span>Листайте, чтобы увидеть больше <span aria-hidden="true">→</span></span>
+          </div>
+        </section>
+      </section>
+
+      <section class="how-section" id="how">
+        <div class="how-intro">
+          <p class="eyebrow">Прозрачный подбор</p>
+          <h2>Не каталог. Короткий список с аргументами.</h2>
+        </div>
+        <ol class="how-steps">
+          <li><span>01</span><div><h3>Отсекаем лишнее</h3><p>Проверяем город, дату, формат, бюджет, язык и длительность.</p></div></li>
+          <li><span>02</span><div><h3>Считаем совпадение</h3><p>Стабильно оцениваем оставшихся подрядчиков и выбираем до трёх.</p></div></li>
+          <li><span>03</span><div><h3>Объясняем выбор</h3><p>Показываем конкретные причины попадания каждой карточки в результат.</p></div></li>
+        </ol>
+      </section>
+    </main>
+
+    <footer class="site-footer" id="about">
+      <div class="footer-brand"><span>СОВПАЛО</span><p>События начинаются<br />с правильных людей.</p></div>
+      <p>Сервис точного подбора event-подрядчиков<br />для Алматы, Астаны и не только.</p>
+      <div class="footer-meta"><span>© 2026 Совпало</span><span>Алматы, Казахстан</span></div>
+    </footer>
+
+    <noscript>Для работы подбора включите JavaScript.</noscript>
+    <script src="/runtime-config.js"></script>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

@@ -1,11 +1,18 @@
-from dotenv import dotenv_values
-from openai import OpenAI
+"""Convenience entry point for the backend development server."""
 
-config = dotenv_values(".env")
+import uvicorn
 
-def main():
-  client = OpenAI(api_key=config["OPENAI_API_KEY"])
+from backend.src.config import settings
+
+
+def main() -> None:
+    uvicorn.run(
+        "backend.src.main:app",
+        host=settings.app_host,
+        port=settings.app_port,
+        reload=True,
+    )
 
 
 if __name__ == "__main__":
-  main()
+    main()
