@@ -45,6 +45,7 @@
             <h2>Расскажите о событии</h2>
           </div>
 
+          <div class="search-panel__sticky">
           <form id="searchForm">
             <div class="field-row field-row--two">
               <label class="field">
@@ -107,6 +108,7 @@
           </form>
 
           <p class="dataset-note"><span class="status-dot"></span><span id="datasetStatus">Проверяем датасет…</span></p>
+          </div>
         </aside>
 
         <section class="results-panel" aria-live="polite" aria-busy="false">
@@ -125,20 +127,11 @@
                   <option value="price_desc">Цена: сначала выше</option>
                 </select>
               </label>
-              <div class="carousel-controls" aria-label="Навигация по карточкам">
-                <button id="previousCard" type="button" aria-label="Предыдущая карточка">←</button>
-                <button id="nextCard" type="button" aria-label="Следующая карточка">→</button>
-              </div>
             </div>
           </div>
 
           <div class="result-state" id="resultState" hidden></div>
           <div class="cards-track" id="cardsTrack"></div>
-          <div class="cards-footer" id="cardsFooter" hidden>
-            <span id="cardsCounter">01 / 03</span>
-            <div class="carousel-dots" id="carouselDots"></div>
-            <span>Листайте, чтобы увидеть больше <span aria-hidden="true">→</span></span>
-          </div>
         </section>
       </section>
 

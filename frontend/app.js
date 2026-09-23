@@ -4,13 +4,9 @@ const form = document.querySelector("#searchForm");
 const cardsTrack = document.querySelector("#cardsTrack");
 const resultState = document.querySelector("#resultState");
 const resultsPanel = document.querySelector(".results-panel");
+const resultsTitle = document.querySelector("#resultsTitle");
 const resultsSubtitle = document.querySelector("#resultsSubtitle");
 const sortSelect = document.querySelector("#sortSelect");
-const cardsFooter = document.querySelector("#cardsFooter");
-const cardsCounter = document.querySelector("#cardsCounter");
-const carouselDots = document.querySelector("#carouselDots");
-const previousCard = document.querySelector("#previousCard");
-const nextCard = document.querySelector("#nextCard");
 const budgetInput = document.querySelector("#budget");
 const budgetPreview = document.querySelector("#budgetPreview");
 const submitButton = form.querySelector("button[type='submit']");
@@ -56,9 +52,7 @@ const imagePools = {
   ],
 };
 
-let currentItems = [];
 let lastRequest = null;
-let currentCardIndex = 0;
 
 function escapeHtml(value) {
   return String(value ?? "")
@@ -147,7 +141,6 @@ function setLoading(loading) {
   if (!loading) return;
 
   resultState.hidden = true;
-  cardsFooter.hidden = true;
   cardsTrack.hidden = false;
   cardsTrack.innerHTML = [0, 1]
     .map(() => `
@@ -167,7 +160,6 @@ function setLoading(loading) {
 function renderState(title, message, icon = "i") {
   cardsTrack.hidden = true;
   cardsTrack.innerHTML = "";
-  cardsFooter.hidden = true;
   resultState.hidden = false;
   resultState.innerHTML = `
     <div class="state-content">
@@ -223,22 +215,75 @@ function renderCard(item) {
   `;
 }
 
-function renderResults(payload) {
-  currentItems = payload.items || [];
-  currentCardIndex = 0;
-  resultsSubtitle.textContent = payload.message;
+const rejectionLabels = {
+  busy: "заняты в выбранную дату",
+  over_budget: "не укладываются в бюджет",
+  wrong_format: "не берут выбранный формат",
+  wrong_language: "не работают на выбранном языке",
+  duration: "не подходят по длительности",
+};
 
-  if (payload.status !== "MATCHED" || !currentItems.length) {
-    const title = payload.status === "CATEGORY_NOT_FOUND" ? "Категория пока не представлена" : "Точных совпадений нет";
-    renderState(title, payload.message, "×");
-    updateCarousel();
-    return;
-  }
+function rejectionDetails(reasons = {}) {
+  return Object.entries(reasons)
+    .filter(([key, count]) => rejectionLabels[key] && count > 0)
+    .map(([key, count]) => `${count} — ${rejectionLabels[key]}`)
+    .join("; ");
+}
+
+function renderEmptyCard(payload) {
+  const details = rejectionDetails(payload.rejection_reasons);
+  const outcomes = {
+    MATCHED: {
+      label: "Подобрали",
+      title: "Больше точных совпадений нет",
+      message: details
+        ? `Остальные кандидаты не прошли условия: ${details}.`
+        : "Это все подрядчики в городе и категории, которые проходят заданные условия.",
+      tone: "matched",
+      icon: "✓",
+    },
+    CATEGORY_NOT_FOUND: {
+      label: "В городе нет категории",
+      title: "Подрядчиков этой категории здесь нет",
+      message: payload.message,
+      tone: "not-found",
+      icon: "—",
+    },
+    NO_MATCH: {
+      label: "Кандидаты есть, но не подходят",
+      title: "Ни один кандидат не прошёл условия",
+      message: payload.message,
+      tone: "rejected",
+      icon: "×",
+    },
+  };
+  const outcome = outcomes[payload.status] || outcomes.NO_MATCH;
+
+  return `
+    <article class="empty-result-card empty-result-card--${outcome.tone}">
+      <div class="empty-result-icon" aria-hidden="true">${outcome.icon}</div>
+      <span class="outcome-label">${escapeHtml(outcome.label)}</span>
+      <h3>${escapeHtml(outcome.title)}</h3>
+      <p>${escapeHtml(outcome.message)}</p>
+    </article>
+  `;
+}
+
+function renderResults(payload) {
+  const currentItems = payload.items || [];
+  const outcomeTitles = {
+    MATCHED: "Подобрали",
+    CATEGORY_NOT_FOUND: "В этом городе такой категории нет",
+    NO_MATCH: "Кандидаты есть, но ни один не подходит",
+  };
+  resultsTitle.textContent = outcomeTitles[payload.status] || "Результат подбора";
+  resultsSubtitle.textContent = payload.message;
 
   resultState.hidden = true;
   cardsTrack.hidden = false;
-  cardsTrack.innerHTML = currentItems.map(renderCard).join("");
-  cardsTrack.scrollLeft = 0;
+  const cards = currentItems.map(renderCard);
+  if (currentItems.length < 3) cards.push(renderEmptyCard(payload));
+  cardsTrack.innerHTML = cards.join("");
 
   cardsTrack.querySelectorAll("img").forEach((image) => {
     image.addEventListener("error", () => {
@@ -248,36 +293,6 @@ function renderResults(payload) {
     });
   });
 
-  carouselDots.innerHTML = currentItems
-    .map((_, index) => `<button class="carousel-dot${index === 0 ? " is-active" : ""}" data-index="${index}" type="button" aria-label="Карточка ${index + 1}"></button>`)
-    .join("");
-  carouselDots.querySelectorAll("button").forEach((button) => {
-    button.addEventListener("click", () => scrollToCard(Number(button.dataset.index)));
-  });
-  cardsFooter.hidden = false;
-  updateCarousel();
-}
-
-function scrollToCard(index) {
-  const cards = cardsTrack.querySelectorAll(".contractor-card");
-  const target = cards[index];
-  if (!target) return;
-  cardsTrack.scrollTo({ left: target.offsetLeft - cardsTrack.offsetLeft, behavior: "smooth" });
-}
-
-function updateCarousel() {
-  const total = currentItems.length;
-  if (!total) {
-    previousCard.disabled = true;
-    nextCard.disabled = true;
-    return;
-  }
-  cardsCounter.textContent = `${String(currentCardIndex + 1).padStart(2, "0")} / ${String(total).padStart(2, "0")}`;
-  previousCard.disabled = currentCardIndex === 0;
-  nextCard.disabled = currentCardIndex >= total - 1;
-  carouselDots.querySelectorAll("button").forEach((dot, index) => {
-    dot.classList.toggle("is-active", index === currentCardIndex);
-  });
 }
 
 async function submitSearch() {
@@ -334,25 +349,6 @@ sortSelect.addEventListener("change", () => {
 
 budgetInput.addEventListener("input", () => {
   budgetPreview.textContent = budgetInput.value ? `${formatMoney(budgetInput.value)} ₸` : "Введите сумму";
-});
-
-previousCard.addEventListener("click", () => scrollToCard(Math.max(0, currentCardIndex - 1)));
-nextCard.addEventListener("click", () => scrollToCard(Math.min(currentItems.length - 1, currentCardIndex + 1)));
-
-let scrollFrame;
-cardsTrack.addEventListener("scroll", () => {
-  cancelAnimationFrame(scrollFrame);
-  scrollFrame = requestAnimationFrame(() => {
-    const cards = [...cardsTrack.querySelectorAll(".contractor-card")];
-    if (!cards.length) return;
-    const trackLeft = cardsTrack.getBoundingClientRect().left;
-    currentCardIndex = cards.reduce((bestIndex, card, index) => {
-      const currentDistance = Math.abs(card.getBoundingClientRect().left - trackLeft);
-      const bestDistance = Math.abs(cards[bestIndex].getBoundingClientRect().left - trackLeft);
-      return currentDistance < bestDistance ? index : bestIndex;
-    }, 0);
-    updateCarousel();
-  });
 });
 
 init();
