@@ -1,6 +1,11 @@
+from dotenv import dotenv_values
+from openai import OpenAI
+
+config = dotenv_values(".env")
+
 def main():
-    print("Hello from hack-99690795-spectra!")
+  client = OpenAI(api_key=config["OPENAI_API_KEY"])
 
 
 if __name__ == "__main__":
-    main()
+  main()
