@@ -1,0 +1,7 @@
+[project]
+name = "hack-99690795-spectra"
+version = "0.0.1"
+description = "Project for Hackathon"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = []
